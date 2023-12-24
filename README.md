@@ -32,7 +32,7 @@ This is a simple image editor GUI built using Python's Tkinter and various image
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/your-username/your-repo.git
+    https://github.com/yossefsabry/image_processing_last_tkinter.git
     ```
 
 2. Install the required dependencies:
@@ -54,8 +54,3 @@ This is a simple image editor GUI built using Python's Tkinter and various image
 
 4. Save the edited image using the "Save" button.
 
-## Contributing
-Contributions are welcome! If you find any bugs or want to add new features, feel free to open an issue or submit a pull request.
-
-## License
-This project is licensed under the [MIT License](LICENSE).
