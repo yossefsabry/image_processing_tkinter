@@ -165,48 +165,93 @@ def blind_image():
         img = Image.blend(img1, img2, alpha=0.5)
         display_image(img)
         
-# ! error in this function
+
 def and_operation():
     global img
+    
     img1_path = filedialog.askopenfilename(title="Select Image 1")
     img2_path = filedialog.askopenfilename(title="Select Image 2")
     
     if img1_path and img2_path:
-        img1 = Image.open(img1_path)
-        img2 = Image.open(img2_path)
+        img1 = cv2.imread(img1_path, cv2.COLOR_BGR2RGB)
+        img2 = cv2.imread(img2_path, cv2.COLOR_BGR2RGB)
         
         # Resize the images to the same size
-        img1 = img1.resize((img.width, img.height))
-        img2 = img2.resize((img.width, img.height))
-        
-        # Convert images to 'L' (grayscale) mode
-        img1 = img1.convert('L')
-        img2 = img2.convert('L')
+        img1 = cv2.resize(img1, (img.width, img.height))
+        img2 = cv2.resize(img2, (img.width, img.height))
         
         # Perform AND operation
-        img = ImageChops.logical_and(img1, img2)
+        img = cv2.bitwise_and(img1, img2)
+        
+        # ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+        img = Image.fromarray(img)        
         display_image(img)
 
-# ! error in this function
 def or_operation():
     global img
+    
     img1_path = filedialog.askopenfilename(title="Select Image 1")
     img2_path = filedialog.askopenfilename(title="Select Image 2")
     
     if img1_path and img2_path:
-        img1 = Image.open(img1_path)
-        img2 = Image.open(img2_path)
+        img1 = cv2.imread(img1_path, cv2.COLOR_BGR2RGB)
+        img2 = cv2.imread(img2_path, cv2.COLOR_BGR2RGB)
         
         # Resize the images to the same size
-        img1 = img1.resize((img.width, img.height))
-        img2 = img2.resize((img.width, img.height))
+        img1 = cv2.resize(img1, (img.width, img.height))
+        img2 = cv2.resize(img2, (img.width, img.height))
         
         # Perform OR operation
-        img = ImageChops.logical_or(img1, img2)
+        img = cv2.bitwise_or(img1, img2)
+        
+        # ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+        img = Image.fromarray(img)        
+        display_image(img)
+        
+
+def divide_operation():
+    global img
+    
+    img1_path = filedialog.askopenfilename(title="Select Image 1")
+    img2_path = filedialog.askopenfilename(title="Select Image 2")
+    
+    if img1_path and img2_path:
+        img1 = cv2.imread(img1_path, cv2.COLOR_BGR2RGB)
+        img2 = cv2.imread(img2_path, cv2.COLOR_BGR2RGB)
+        
+        # Resize the images to the same size
+        img1 = cv2.resize(img1, (img.width, img.height))
+        img2 = cv2.resize(img2, (img.width, img.height))
+        
+        # Perform pixel-wise division
+        img = cv2.divide(img1, img2, scale=255.0)
+        
+        # Convert the result image to 'L' mode
+        img = Image.fromarray(img)        
+        display_image(img)    
+
+def multipluy_operation():
+    global img
+    
+    img1_path = filedialog.askopenfilename(title="Select Image 1")
+    img2_path = filedialog.askopenfilename(title="Select Image 2")
+    
+    if img1_path and img2_path:
+        img1 = cv2.imread(img1_path, cv2.COLOR_BGR2RGB)
+        img2 = cv2.imread(img2_path, cv2.COLOR_BGR2RGB)
+        
+        # Resize the images to the same size
+        img1 = cv2.resize(img1, (img.width, img.height))
+        img2 = cv2.resize(img2, (img.width, img.height))
+        
+        # Perform pixel-wise multiplication
+        img = cv2.multiply(img1, img2, scale=1/255.0)
+        
+        # Convert the result image to 'L' mode
+        img = Image.fromarray(img)        
         display_image(img)
 
-# ====================== GUI ======================
-
+#  =========== GUI ===========
 mains = Tk()
 space = " " * 215
 screen_width = mains.winfo_screenwidth()
@@ -252,6 +297,16 @@ contrast_slider = Scale(mains, label="Contrast", from_=0, to=2, orient=HORIZONTA
 contrast_slider.set(1)
 contrast_slider.configure(font=('consolas', 10, 'bold'), foreground='black')
 contrast_slider.place(x=1070, y=90)
+
+
+btn_or_operation = Button(mains, text='multipluy Operation', width=25, command=multipluy_operation, bg="PURPLE")
+btn_or_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_or_operation.place(x=1070, y=210)
+
+btn_or_operation = Button(mains, text='Divide Operation', width=25, command=divide_operation, bg="PURPLE")
+btn_or_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_or_operation.place(x=1070, y=250)
+
 
 btn_rotate = Button(mains, text='Rotate', width=25, command=rotate, bg="GREEN")
 btn_rotate.configure(font=('consolas', 10, 'bold'), foreground='white')
