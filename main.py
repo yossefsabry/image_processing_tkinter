@@ -1,6 +1,6 @@
 from tkinter import *
 from tkinter import ttk
-from PIL import ImageTk, Image, ImageFilter
+from PIL import ImageTk, Image, ImageFilter, ImageChops
 from tkinter import filedialog
 import os
 import cv2
@@ -8,6 +8,7 @@ from PIL import ImageEnhance
 import numpy as np
 import matplotlib.pyplot as plt
 from ttkbootstrap import Style
+from PIL import ImageChops
 
 def display_image(img):
     disp_image = ImageTk.PhotoImage(img)
@@ -148,7 +149,61 @@ def median_filter():
     global img
     img = img.filter(ImageFilter.MedianFilter)
     display_image(img)
+
+def blind_image():
+    global img
+    img1_path = filedialog.askopenfilename(title="Select Image 1")
+    img2_path = filedialog.askopenfilename(title="Select Image 2")
+    if img1_path and img2_path:
+        img1 = Image.open(img1_path)
+        img2 = Image.open(img2_path)
+        
+        # Resize the images to the same size
+        img1 = img1.resize((img.width, img.height))
+        img2 = img2.resize((img.width, img.height))
+        
+        img = Image.blend(img1, img2, alpha=0.5)
+        display_image(img)
+        
+# ! error in this function
+def and_operation():
+    global img
+    img1_path = filedialog.askopenfilename(title="Select Image 1")
+    img2_path = filedialog.askopenfilename(title="Select Image 2")
     
+    if img1_path and img2_path:
+        img1 = Image.open(img1_path)
+        img2 = Image.open(img2_path)
+        
+        # Resize the images to the same size
+        img1 = img1.resize((img.width, img.height))
+        img2 = img2.resize((img.width, img.height))
+        
+        # Convert images to 'L' (grayscale) mode
+        img1 = img1.convert('L')
+        img2 = img2.convert('L')
+        
+        # Perform AND operation
+        img = ImageChops.logical_and(img1, img2)
+        display_image(img)
+
+# ! error in this function
+def or_operation():
+    global img
+    img1_path = filedialog.askopenfilename(title="Select Image 1")
+    img2_path = filedialog.askopenfilename(title="Select Image 2")
+    
+    if img1_path and img2_path:
+        img1 = Image.open(img1_path)
+        img2 = Image.open(img2_path)
+        
+        # Resize the images to the same size
+        img1 = img1.resize((img.width, img.height))
+        img2 = img2.resize((img.width, img.height))
+        
+        # Perform OR operation
+        img = ImageChops.logical_or(img1, img2)
+        display_image(img)
 
 # ====================== GUI ======================
 
@@ -200,7 +255,7 @@ contrast_slider.place(x=1070, y=90)
 
 btn_rotate = Button(mains, text='Rotate', width=25, command=rotate, bg="GREEN")
 btn_rotate.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_rotate.place(x=805, y=110)
+btn_rotate.place(x=805, y=220)
 
 btn_reset = Button(mains, text="Reset", command=reset, bg="BLACK", activebackground="ORANGE")
 btn_reset.configure(font=('consolas', 10, 'bold'), foreground='white')
@@ -273,5 +328,18 @@ btn_gaussian_filter.place(x=805, y=725)
 btn_median_filter = Button(mains, text='Median Filter', width=25, command=median_filter, bg="MAGENTA")
 btn_median_filter.configure(font=('consolas', 10, 'bold'), foreground='white')
 btn_median_filter.place(x=805, y=810)
+
+btn_add_images = Button(mains, text='blind images', width=25, command=blind_image, bg="ORANGE")
+btn_add_images.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_add_images.place(x=805, y=190)
+
+btn_and_operation = Button(mains, text='AND Operation', width=25, command=and_operation, bg="CYAN")
+btn_and_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_and_operation.place(x=805, y=70)
+
+btn_or_operation = Button(mains, text='OR Operation', width=25, command=or_operation, bg="PURPLE")
+btn_or_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_or_operation.place(x=805, y=110)
+
 
 mains.mainloop()
