@@ -9,17 +9,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ttkbootstrap import Style
 from PIL import ImageChops
+import cv2
+import PIL.ImageFilter as ImageFilter
+import tkinter.ttk as ttk
 
+
+# display images
 def display_image(img):
     disp_image = ImageTk.PhotoImage(img)
     panel.configure(image=disp_image)
     panel.image = disp_image
 
-# Fix: Import the missing ttk module
-import tkinter.ttk as ttk
-
-# Fix: Import the missing ImageFilter module
-import PIL.ImageFilter as ImageFilter
 
 # Fix: Add the ADAPTIVE_THRESH_MEAN_C attribute to the ImageFilter module
 ImageFilter.ADAPTIVE_THRESH_MEAN_C = 1
@@ -31,31 +31,56 @@ def brightness_callback(brightness_pos):
     output_image = enhancer.enhance(brightness_pos)
     display_image(output_image)
 
+def resolution_callback(resolution_pos):
+    resolution_pos = float(resolution_pos) # convert the value to float
+    global output_image
+    enhancer = ImageEnhance.Resolution(img) # create an enhancer object
+    output_image = enhancer.enhance(resolution_pos) # enhance the image
+    display_image(output_image)
+
 def contrast_callback(contrast_pos):
     contrast_pos = float(contrast_pos)
     global output_image
     enhancer = ImageEnhance.Contrast(img)
     output_image = enhancer.enhance(contrast_pos)
     display_image(output_image)
+    
+    # ==========  using torchvision.transforms.functional ==========
+    # import torchvision.transforms.functional as F
+    # contrast_pos = float(contrast_pos)
+    # global output_image
+    # img_tensor = F.to_tensor(img) # convert the image to tensor
+    # img_tensor = F.adjust_contrast(img_tensor, contrast_pos) # adjust the contrast
+    # output_image = F.to_pil_image(img_tensor) # convert the tensor to image
+    # display_image(output_image)
+
 
 def rotate():
     global img
-    img = img.rotate(90)
+    img_array = np.array(img)
+    rotated_img = cv2.rotate(img_array, cv2.ROTATE_90_CLOCKWISE)
+    img = Image.fromarray(rotated_img)
     display_image(img)
 
 def blur():
     global img
-    img = img.filter(ImageFilter.BLUR)
+    img_array = np.array(img)
+    blurred_img = cv2.blur(img_array, (5, 5))
+    img = Image.fromarray(blurred_img)
     display_image(img)
 
 def resize():
     global img
-    img = img.resize((200, 300))
+    img_array = np.array(img)
+    resized_img = cv2.resize(img_array, (200, 300))
+    img = Image.fromarray(resized_img)
     display_image(img)
 
 def crop():
     global img
-    img = img.crop((100, 100, 400, 400))
+    img_array = np.array(img)
+    cropped_img = img_array[100:400, 100:400]
+    img = Image.fromarray(cropped_img)
     display_image(img)
 
 def reset():
@@ -77,7 +102,13 @@ def save():
 
 def convert_to_gray():
     global img
-    img = img.convert("L")
+    #* === first way ===
+    # img = img.convert("L")
+    # display_image(img)
+    
+    #* ==== second way ====
+    img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
+    img = Image.fromarray(img)
     display_image(img)
 
 def convert_to_rgb():
@@ -88,12 +119,21 @@ def convert_to_rgb():
 
 def convert_to_binary():
     global img
-    img = img.convert("1")
+    # ===== first way ====
+    # img = img.convert("1")
+    # display_image(img)
+    
+    # ==== using cv2 module ====
+    img_array = np.array(img)
+    img_gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+    _, img_binary = cv2.threshold(img_gray, 87, 255, cv2.THRESH_BINARY)
+    img = Image.fromarray(img_binary)
     display_image(img)
-
+    
 def close():
     mains.destroy()
 
+# show all channel in the images
 def show_histogram():
     global img
     img_array = np.array(img)
@@ -102,23 +142,43 @@ def show_histogram():
     plt.ylabel('Frequency')
     plt.title('Image Histogram')
     plt.show()
-
-def adaptive_threshold():
-    global img
-    radius = 15  # You can adjust the radius as needed
-
-    def threshold_function(p):
-        threshold_value = 128  # Define the threshold value here
-        return 255 if p > threshold_value else 0
-
-    img = img.point(threshold_function)
-    display_image(img)
     
-def image_reflection():
+#! slove the problem in function
+def adaptive_threshold():
+    
+    
     global img
-    img = img.transpose(Image.FLIP_LEFT_RIGHT)
-    display_image(img)
+    radius = 3  
+    threshold_value = 80  
 
+    # Convert the image to grayscale
+    img_gray = img.convert("L")
+
+    # Convert to NumPy array for OpenCV processing
+    img_cv2 = np.array(img_gray)
+
+    # Apply adaptive thresholding
+    img_cv2 = cv2.adaptiveThreshold(img_cv2, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, radius, threshold_value)
+
+    # Convert back to PIL Image object and then to binary mode
+    img = Image.fromarray(img_cv2).convert("1")
+
+    # Display the image
+    display_image(img)
+def image_reflection():
+    
+
+    #* ====== using PIL ======
+    # global img
+    # img = img.transpose(Image.FLIP_LEFT_RIGHT)
+    # display_image(img)
+    
+    #* ====== using cv2 ===== 
+    global img
+    img = cv2.flip(np.array(img), 1)
+    img = Image.fromarray(img)
+    display_image(img)
+# ! slove the problem of gamma correction
 def gamma_correction():
     global img
     gamma = 1.5
@@ -132,28 +192,55 @@ def otsu_threshold():
     global img
     img_gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
     _, img_binary = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    img = Image.fromarray(img_binary)
+    
+    img = Image.fromarray(img_binary) #? create an image from the array numpy
     display_image(img)
 
 def mean_filter():
     global img
-    img = img.filter(ImageFilter.MedianFilter)
+    
+    np_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+    
+    # Apply mean filter using cv2.blur
+    blurred = cv2.blur(np_img, (5, 5))  # You can adjust the kernel size (e.g., (5, 5)) as needed
+    
+    # Convert the result image back to PIL format(no effect happend in the image)
+    img = Image.fromarray(cv2.cvtColor(blurred, cv2.COLOR_BGR2RGB))
+    
     display_image(img)
 
 def gaussian_filter():
     global img
-    img = img.filter(ImageFilter.GaussianBlur)
+    
+    np_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+    
+    # Apply mean filter using cv2.blur
+    blurred = cv2.GaussianBlur(np_img, (5, 5), 0)  # You can adjust the kernel size (e.g., (5, 5)) as needed
+    
+    # Convert the result image back to PIL format (not effect happend to the image)
+    img = Image.fromarray(cv2.cvtColor(blurred, cv2.COLOR_BGR2RGB))
+    
     display_image(img)
 
 def median_filter():
     global img
-    img = img.filter(ImageFilter.MedianFilter)
+    
+    np_img = np.array(img)
+    
+    # Apply mean filter using cv2.blur
+    blurred = cv2.medianBlur(np_img, (5, 5))  # You can adjust the kernel size (e.g., (5, 5)) as needed
+    
+    # Convert the result image back to PIL format
+    img = Image.fromarray(blurred)
+    
     display_image(img)
 
 def blind_image():
     global img
+    
     img1_path = filedialog.askopenfilename(title="Select Image 1")
     img2_path = filedialog.askopenfilename(title="Select Image 2")
+    
     if img1_path and img2_path:
         img1 = Image.open(img1_path)
         img2 = Image.open(img2_path)
@@ -162,9 +249,17 @@ def blind_image():
         img1 = img1.resize((img.width, img.height))
         img2 = img2.resize((img.width, img.height))
         
-        img = Image.blend(img1, img2, alpha=0.5)
-        display_image(img)
+        # Convert PIL images to NumPy arrays
+        np_img1 = np.array(img1)
+        np_img2 = np.array(img2)
         
+        # Perform blending using cv2.addWeighted
+        blended = cv2.addWeighted(np_img1, 0.5, np_img2, 0.5, 0)
+        
+        # Convert the result image back to PIL format
+        img = Image.fromarray(blended)
+        
+        display_image(img)
 
 def and_operation():
     global img
@@ -207,7 +302,6 @@ def or_operation():
         # ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
         img = Image.fromarray(img)        
         display_image(img)
-        
 
 def divide_operation():
     global img
@@ -251,6 +345,8 @@ def multipluy_operation():
         img = Image.fromarray(img)        
         display_image(img)
 
+
+
 #  =========== GUI ===========
 mains = Tk()
 space = " " * 215
@@ -286,115 +382,123 @@ panel.grid(row=0, column=0, rowspan=12, padx=50, pady=50)
 display_image(img)
 
 
+btn_reset = Button(mains, text="Reset", command=reset, bg="BLACK", activebackground="ORANGE")
+btn_reset.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_reset.place(x=380, y=15)
+
+btn_close = Button(mains, text='Close', command=close, bg="BLACK", activebackground="ORANGE")
+btn_close.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_close.place(x=430, y=15)
+
 brightness_slider = Scale(mains, label="Brightness", from_=0, to=2, orient=HORIZONTAL, length=200,
                             resolution=0.1, command=brightness_callback, bg="PINK")
 brightness_slider.set(1)
 brightness_slider.configure(font=('consolas', 10, 'bold'), foreground='black')
 brightness_slider.place(x=1070, y=15)
 
-contrast_slider = Scale(mains, label="Contrast", from_=0, to=2, orient=HORIZONTAL, length=200,
+resolution_slider = Scale(mains, label="resolution", from_=0, to=2, orient=HORIZONTAL, length=200,
+                            resolution=0.1, command=resolution_callback, bg="PINK")
+resolution_slider.set(1)
+resolution_slider.configure(font=('consolas', 10, 'bold'), foreground='black')
+resolution_slider.place(x=1070, y=90)
+
+contrast_slider = Scale(mains, label="Saturations", from_=0, to=2, orient=HORIZONTAL, length=200,
                         command=contrast_callback, resolution=0.1, bg="light green")
 contrast_slider.set(1)
 contrast_slider.configure(font=('consolas', 10, 'bold'), foreground='black')
-contrast_slider.place(x=1070, y=90)
-
-
-btn_or_operation = Button(mains, text='multipluy Operation', width=25, command=multipluy_operation, bg="PURPLE")
-btn_or_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_or_operation.place(x=1070, y=210)
-
-btn_or_operation = Button(mains, text='Divide Operation', width=25, command=divide_operation, bg="PURPLE")
-btn_or_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_or_operation.place(x=1070, y=250)
-
-
-btn_rotate = Button(mains, text='Rotate', width=25, command=rotate, bg="GREEN")
-btn_rotate.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_rotate.place(x=805, y=220)
-
-btn_reset = Button(mains, text="Reset", command=reset, bg="BLACK", activebackground="ORANGE")
-btn_reset.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_reset.place(x=380, y=15)
+contrast_slider.place(x=1070, y=165)
 
 btn_change_img = Button(mains, text='Change Image', width=25, command=change_image, bg="RED", activebackground="ORANGE")
 btn_change_img.configure(font=('consolas', 10, 'bold'), foreground='white')
 btn_change_img.place(x=805, y=35)
 
-btn_resize = Button(mains, text='Resize', width=25, command=resize, bg="YELLOW")
-btn_resize.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_resize.place(x=805, y=255)
-
-btn_crop = Button(mains, text='Crop', width=25, command=crop, bg="VIOLET")
-btn_crop.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_crop.place(x=805, y=340)
-
-btn_blur = Button(mains, text='Blur', width=25, command=blur, bg="ORANGE")
-btn_blur.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_blur.place(x=805, y=425)
-
 btn_convert_gray = Button(mains, text='Convert to Gray', width=25, command=convert_to_gray, bg="GRAY")
 btn_convert_gray.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_convert_gray.place(x=805, y=510)
+btn_convert_gray.place(x=805, y=70)
 
 btn_convert_rgb = Button(mains, text='Convert to RGB', width=25, command=convert_to_rgb, bg="BLUE")
 btn_convert_rgb.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_convert_rgb.place(x=805, y=595)
+btn_convert_rgb.place(x=805, y=105)
 
 btn_convert_binary = Button(mains, text='Convert to Binary', width=25, command=convert_to_binary, bg="BROWN")
 btn_convert_binary.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_convert_binary.place(x=805, y=680)
+btn_convert_binary.place(x=805, y=140)
 
-btn_save = Button(mains, text='Save', width=25, command=save, bg="BROWN")
-btn_save.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_save.place(x=805, y=765)
 
-btn_close = Button(mains, text='Close', command=close, bg="BLACK", activebackground="ORANGE")
-btn_close.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_close.place(x=430, y=15)
 
-btn_histogram = Button(mains, text='Histogram', width=25, command=show_histogram, bg="CYAN")
-btn_histogram.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_histogram.place(x=805, y=150)
+btn_rotate = Button(mains, text='Rotate', width=25, command=rotate, bg="GREEN")
+btn_rotate.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_rotate.place(x=805, y=175)
 
-btn_reflection = Button(mains, text='Reflection', width=25, command=image_reflection, bg="LIGHT BLUE")
-btn_reflection.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_reflection.place(x=805, y=300)
+btn_resize = Button(mains, text='Resize', width=25, command=resize, bg="YELLOW")
+btn_resize.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_resize.place(x=805, y=210)
 
-btn_gamma_correction = Button(mains, text='Gamma Correction', width=25, command=gamma_correction, bg="LIGHT YELLOW")
-btn_gamma_correction.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_gamma_correction.place(x=805, y=385)
+btn_crop = Button(mains, text='Crop', width=25, command=crop, bg="VIOLET")
+btn_crop.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_crop.place(x=805, y=245)
 
-btn_adaptive_threshold = Button(mains, text='Adaptive Threshold', width=25, command=adaptive_threshold, bg="MAGENTA")
-btn_adaptive_threshold.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_adaptive_threshold.place(x=805, y=470)
-
-btn_otsu_threshold = Button(mains, text='Otsu Threshold', width=25, command=otsu_threshold, bg="PURPLE")
-btn_otsu_threshold.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_otsu_threshold.place(x=805, y=555)
-
-btn_mean_filter = Button(mains, text='Mean Filter', width=25, command=mean_filter, bg="LIGHT YELLOW")
-btn_mean_filter.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_mean_filter.place(x=805, y=640)
-
-btn_gaussian_filter = Button(mains, text='Gaussian Filter', width=25, command=gaussian_filter, bg="LIGHT BLUE")
-btn_gaussian_filter.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_gaussian_filter.place(x=805, y=725)
-
-btn_median_filter = Button(mains, text='Median Filter', width=25, command=median_filter, bg="MAGENTA")
-btn_median_filter.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_median_filter.place(x=805, y=810)
+btn_blur = Button(mains, text='Blur', width=25, command=blur, bg="ORANGE")
+btn_blur.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_blur.place(x=805, y=280)
 
 btn_add_images = Button(mains, text='blind images', width=25, command=blind_image, bg="ORANGE")
 btn_add_images.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_add_images.place(x=805, y=190)
+btn_add_images.place(x=805, y=315)
 
 btn_and_operation = Button(mains, text='AND Operation', width=25, command=and_operation, bg="CYAN")
 btn_and_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_and_operation.place(x=805, y=70)
+btn_and_operation.place(x=805, y=350)
 
 btn_or_operation = Button(mains, text='OR Operation', width=25, command=or_operation, bg="PURPLE")
 btn_or_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_or_operation.place(x=805, y=110)
+btn_or_operation.place(x=805, y=385)
 
+
+btn_histogram = Button(mains, text='Histogram', width=25, command=show_histogram, bg="CYAN")
+btn_histogram.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_histogram.place(x=805, y=420)
+
+btn_reflection = Button(mains, text='Reflection', width=25, command=image_reflection, bg="LIGHT BLUE")
+btn_reflection.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_reflection.place(x=805, y=455)
+
+btn_gamma_correction = Button(mains, text='Gamma Correction', width=25, command=gamma_correction, bg="LIGHT YELLOW")
+btn_gamma_correction.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_gamma_correction.place(x=805, y=490)
+
+btn_adaptive_threshold = Button(mains, text='Adaptive Threshold', width=25, command=adaptive_threshold, bg="MAGENTA")
+btn_adaptive_threshold.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_adaptive_threshold.place(x=805, y=525)
+
+btn_otsu_threshold = Button(mains, text='Otsu Threshold', width=25, command=otsu_threshold, bg="PURPLE")
+btn_otsu_threshold.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_otsu_threshold.place(x=805, y=560)
+
+btn_mean_filter = Button(mains, text='Mean Filter', width=25, command=mean_filter, bg="LIGHT YELLOW")
+btn_mean_filter.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_mean_filter.place(x=805, y=595)
+
+btn_gaussian_filter = Button(mains, text='Gaussian Filter', width=25, command=gaussian_filter, bg="LIGHT BLUE")
+btn_gaussian_filter.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_gaussian_filter.place(x=805, y=630)
+
+btn_median_filter = Button(mains, text='Median Filter', width=25, command=median_filter, bg="MAGENTA")
+btn_median_filter.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_median_filter.place(x=805, y=675)
+
+
+btn_multi_operation = Button(mains, text='multipluy Operation', width=25, command=multipluy_operation, bg="PURPLE")
+btn_multi_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_multi_operation.place(x=1070, y=250)
+
+btn_divide_operation = Button(mains, text='Divide Operation', width=25, command=divide_operation, bg="PURPLE")
+btn_divide_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_divide_operation.place(x=1070, y=295)
+
+
+btn_save = Button(mains, text='Save', width=25, command=save, bg="BROWN")
+btn_save.configure(font=('consolas', 10, 'bold'), foreground='white')
+btn_save.place(x=1070, y=330)
 
 mains.mainloop()
