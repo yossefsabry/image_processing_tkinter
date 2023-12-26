@@ -158,7 +158,7 @@ def adaptive_threshold():
     #* C: الثابت المُطرح من المتوسط أو المتوسط المرجح.
     img = Image.fromarray(img_binary) 
     display_image(img)
-    
+
 def image_reflection():
     #* ====== using PIL ======
     # global img
@@ -202,11 +202,12 @@ def gaussian_filter():
     img = Image.fromarray(cv2.cvtColor(blurred, cv2.COLOR_BGR2RGB))
     display_image(img)
 
-def median_filter():
+def median_filter():#! error >  (- Argument 'ksize' is required to be an integer)
     global img
     np_img = np.array(img)
     blurred = cv2.medianBlur(np_img, (5, 5))  #? apply the median_filter with kernel size (5,5)
     img = Image.fromarray(blurred)
+    print('--------- apply')
     display_image(img)
 
 def blind_image():
@@ -311,7 +312,7 @@ def set_style():
 # Apply styles
 set_style()
 
-img = Image.open("GreenHills.jpg")
+img = Image.open("img1.png")
 img = img.resize((700, 600))
 
 panel = Label(mains)
