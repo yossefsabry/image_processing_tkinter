@@ -12,6 +12,9 @@ from PIL import ImageChops
 import cv2
 import PIL.ImageFilter as ImageFilter
 import tkinter.ttk as ttk
+from tkinter import Button, Scale, Tk
+
+
 
 #  Add the ADAPTIVE_THRESH_MEAN_C attribute to the ImageFilter module
 ImageFilter.ADAPTIVE_THRESH_MEAN_C = 1
@@ -315,14 +318,29 @@ panel = Label(mains)
 panel.grid(row=0, column=0, rowspan=12, padx=50, pady=50)
 display_image(img)
 
+# button hover function
+button_bg_color = "#36577a"
+
+def apply_button_style(button):
+    button.configure(
+        font=('consolas', 10, 'bold'),
+        foreground='white',
+        cursor='hand2',
+        padx=10,  # Padding on the x-axis
+        pady=5,   # Padding on the y-axis
+    )
+    button.bind("<Enter>", lambda event: button.config(bg="BLACK"))
+    button.bind("<Leave>", lambda event: button.config(bg=button_bg_color))
+    
+
 
 btn_reset = Button(mains, text="Reset", command=reset, bg="BLACK", activebackground="ORANGE")
-btn_reset.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_reset.place(x=380, y=15)
+apply_button_style(btn_reset)
+btn_reset.place(x=360, y=15)
 
 btn_close = Button(mains, text='Close', command=close, bg="BLACK", activebackground="ORANGE")
-btn_close.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_close.place(x=430, y=15)
+apply_button_style(btn_close)
+btn_close.place(x=450, y=15)
 
 brightness_slider = Scale(mains, label="Brightness", from_=0, to=2, orient=HORIZONTAL, length=200,
                             resolution=0.1, command=brightness_callback, bg="PINK")
@@ -343,96 +361,96 @@ contrast_slider.configure(font=('consolas', 10, 'bold'), foreground='black')
 contrast_slider.place(x=1070, y=165)
 
 btn_change_img = Button(mains, text='Change Image', width=25, command=change_image, bg="RED", activebackground="ORANGE")
-btn_change_img.configure(font=('consolas', 10, 'bold'), foreground='white')
+apply_button_style(btn_change_img)
 btn_change_img.place(x=805, y=35)
 
 btn_convert_gray = Button(mains, text='Convert to Gray', width=25, command=convert_to_gray, bg="GRAY")
-btn_convert_gray.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_convert_gray.place(x=805, y=70)
+apply_button_style(btn_convert_gray)
+btn_convert_gray.place(x=805, y=90)
 
 btn_convert_rgb = Button(mains, text='Convert to RGB', width=25, command=convert_to_rgb, bg="BLUE")
-btn_convert_rgb.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_convert_rgb.place(x=805, y=105)
+apply_button_style(btn_convert_rgb)
+btn_convert_rgb.place(x=805, y=125)
 
 btn_convert_binary = Button(mains, text='Convert to Binary', width=25, command=convert_to_binary, bg="BROWN")
-btn_convert_binary.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_convert_binary.place(x=805, y=140)
+apply_button_style(btn_convert_binary)
+btn_convert_binary.place(x=805, y=160)
 
 
 
 btn_rotate = Button(mains, text='Rotate', width=25, command=rotate, bg="GREEN")
-btn_rotate.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_rotate.place(x=805, y=175)
+apply_button_style(btn_rotate)
+btn_rotate.place(x=805, y=195)
 
 btn_resize = Button(mains, text='Resize', width=25, command=resize, bg="YELLOW")
-btn_resize.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_resize.place(x=805, y=210)
+apply_button_style(btn_resize)
+btn_resize.place(x=805, y=230)
 
 btn_crop = Button(mains, text='Crop', width=25, command=crop, bg="VIOLET")
-btn_crop.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_crop.place(x=805, y=245)
+apply_button_style(btn_crop)
+btn_crop.place(x=805, y=265)
 
 btn_blur = Button(mains, text='Blur', width=25, command=blur, bg="ORANGE")
-btn_blur.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_blur.place(x=805, y=280)
+apply_button_style(btn_blur)
+btn_blur.place(x=805, y=300)
 
 btn_add_images = Button(mains, text='blind images', width=25, command=blind_image, bg="ORANGE")
-btn_add_images.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_add_images.place(x=805, y=315)
+apply_button_style(btn_add_images)
+btn_add_images.place(x=805, y=335)
 
 btn_and_operation = Button(mains, text='AND Operation', width=25, command=and_operation, bg="CYAN")
-btn_and_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_and_operation.place(x=805, y=350)
+apply_button_style(btn_and_operation)
+btn_and_operation.place(x=805, y=370)
 
 btn_or_operation = Button(mains, text='OR Operation', width=25, command=or_operation, bg="PURPLE")
-btn_or_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_or_operation.place(x=805, y=385)
+apply_button_style(btn_or_operation)
+btn_or_operation.place(x=805, y=405)
 
 
 btn_histogram = Button(mains, text='Histogram', width=25, command=show_histogram, bg="CYAN")
-btn_histogram.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_histogram.place(x=805, y=420)
+apply_button_style(btn_histogram)
+btn_histogram.place(x=805, y=440)
 
 btn_reflection = Button(mains, text='Reflection', width=25, command=image_reflection, bg="LIGHT BLUE")
-btn_reflection.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_reflection.place(x=805, y=455)
+apply_button_style(btn_reflection)
+btn_reflection.place(x=805, y=475)
 
 btn_gamma_correction = Button(mains, text='Gamma Correction', width=25, command=gamma_correction, bg="LIGHT YELLOW")
-btn_gamma_correction.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_gamma_correction.place(x=805, y=490)
+apply_button_style(btn_gamma_correction)
+btn_gamma_correction.place(x=805, y=510)
 
 btn_adaptive_threshold = Button(mains, text='Adaptive Threshold', width=25, command=adaptive_threshold, bg="MAGENTA")
-btn_adaptive_threshold.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_adaptive_threshold.place(x=805, y=525)
+apply_button_style(btn_adaptive_threshold)
+btn_adaptive_threshold.place(x=805, y=545)
 
 btn_otsu_threshold = Button(mains, text='Otsu Threshold', width=25, command=otsu_threshold, bg="PURPLE")
-btn_otsu_threshold.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_otsu_threshold.place(x=805, y=560)
+apply_button_style(btn_otsu_threshold)
+btn_otsu_threshold.place(x=805, y=580)
 
 btn_mean_filter = Button(mains, text='Mean Filter', width=25, command=mean_filter, bg="LIGHT YELLOW")
-btn_mean_filter.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_mean_filter.place(x=805, y=595)
+apply_button_style(btn_mean_filter)
+btn_mean_filter.place(x=805, y=615)
 
 btn_gaussian_filter = Button(mains, text='Gaussian Filter', width=25, command=gaussian_filter, bg="LIGHT BLUE")
-btn_gaussian_filter.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_gaussian_filter.place(x=805, y=630)
+apply_button_style(btn_gaussian_filter)
+btn_gaussian_filter.place(x=805, y=650)
 
 btn_median_filter = Button(mains, text='Median Filter', width=25, command=median_filter, bg="MAGENTA")
-btn_median_filter.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_median_filter.place(x=805, y=675)
+apply_button_style(btn_median_filter)
+btn_median_filter.place(x=1070, y=350)
 
 
 btn_multi_operation = Button(mains, text='multipluy Operation', width=25, command=multipluy_operation, bg="PURPLE")
-btn_multi_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_multi_operation.place(x=1070, y=250)
+apply_button_style(btn_multi_operation)
+btn_multi_operation.place(x=1070, y=280)
 
 btn_divide_operation = Button(mains, text='Divide Operation', width=25, command=divide_operation, bg="PURPLE")
-btn_divide_operation.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_divide_operation.place(x=1070, y=295)
+apply_button_style(btn_divide_operation)
+btn_divide_operation.place(x=1070, y=315)
 
 
 btn_save = Button(mains, text='Save', width=25, command=save, bg="BROWN")
-btn_save.configure(font=('consolas', 10, 'bold'), foreground='white')
-btn_save.place(x=1070, y=330)
+apply_button_style(btn_save)
+btn_save.place(x=805, y=710)
 
 mains.mainloop()
