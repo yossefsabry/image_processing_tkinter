@@ -13,6 +13,8 @@ import cv2
 import PIL.ImageFilter as ImageFilter
 import tkinter.ttk as ttk
 
+# Fix: Add the ADAPTIVE_THRESH_MEAN_C attribute to the ImageFilter module
+ImageFilter.ADAPTIVE_THRESH_MEAN_C = 1
 
 # display images
 def display_image(img):
@@ -20,25 +22,27 @@ def display_image(img):
     panel.configure(image=disp_image)
     panel.image = disp_image
 
-
-# Fix: Add the ADAPTIVE_THRESH_MEAN_C attribute to the ImageFilter module
-ImageFilter.ADAPTIVE_THRESH_MEAN_C = 1
-
 def brightness_callback(brightness_pos):
-    brightness_pos = float(brightness_pos)
+    brightness_pos = float(brightness_pos) # Convert the value to float for processing
     global output_image
-    enhancer = ImageEnhance.Brightness(img)
-    output_image = enhancer.enhance(brightness_pos)
+    enhancer = ImageEnhance.Brightness(img) # Create an enhancer object
+    output_image = enhancer.enhance(brightness_pos) # Apply brightness enhancement
     display_image(output_image)
 
-def resolution_callback(resolution_pos):
-    resolution_pos = float(resolution_pos) # convert the value to float
+def resolution_callback(resolution_pos):# ! slove the problem of resolution
+    resolution_pos = float(resolution_pos)  # Convert the value to float
     global output_image
-    enhancer = ImageEnhance.Resolution(img) # create an enhancer object
-    output_image = enhancer.enhance(resolution_pos) # enhance the image
+    width, height = img.size  # Get the original image size
+    new_width = int(width * resolution_pos)
+    new_height = int(height * resolution_pos)
+    
+    # Resize the image using the new dimensions and applying the ANTIALIAS filter
+    output_image = img.resize((new_width, new_height), Image.ANTIALIAS)
+    
     display_image(output_image)
 
-def contrast_callback(contrast_pos):
+def contrast_callback(contrast_pos):# ! error in install the module torchvision
+
     contrast_pos = float(contrast_pos)
     global output_image
     enhancer = ImageEnhance.Contrast(img)
@@ -54,7 +58,6 @@ def contrast_callback(contrast_pos):
     # output_image = F.to_pil_image(img_tensor) # convert the tensor to image
     # display_image(output_image)
 
-
 def rotate():
     global img
     img_array = np.array(img)
@@ -64,22 +67,22 @@ def rotate():
 
 def blur():
     global img
-    img_array = np.array(img)
-    blurred_img = cv2.blur(img_array, (5, 5))
-    img = Image.fromarray(blurred_img)
+    img_array = np.array(img) #? convert the image to array numpy
+    blurred_img = cv2.blur(img_array, (5, 5)) #? represent as numpy array and (5,5) is the kernel size
+    img = Image.fromarray(blurred_img) #? create an image from the array numpy
     display_image(img)
 
 def resize():
     global img
     img_array = np.array(img)
-    resized_img = cv2.resize(img_array, (200, 300))
+    resized_img = cv2.resize(img_array, (200, 300)) #? resize the image to (200,300)
     img = Image.fromarray(resized_img)
     display_image(img)
 
 def crop():
     global img
     img_array = np.array(img)
-    cropped_img = img_array[100:400, 100:400]
+    cropped_img = img_array[100:400, 100:400] #? crop the image
     img = Image.fromarray(cropped_img)
     display_image(img)
 
@@ -107,13 +110,13 @@ def convert_to_gray():
     # display_image(img)
     
     #* ==== second way ====
-    img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
+    img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY) #? convert the to gray
     img = Image.fromarray(img)
     display_image(img)
 
 def convert_to_rgb():
     global img
-    img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+    img = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB) #? convert the image to RGB
     img = Image.fromarray(img)
     display_image(img)
 
@@ -126,15 +129,15 @@ def convert_to_binary():
     # ==== using cv2 module ====
     img_array = np.array(img)
     img_gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-    _, img_binary = cv2.threshold(img_gray, 87, 255, cv2.THRESH_BINARY)
+    _, img_binary = cv2.threshold(img_gray, 87, 255, cv2.THRESH_BINARY) #? convert the image to binary
     img = Image.fromarray(img_binary)
     display_image(img)
     
 def close():
     mains.destroy()
 
-# show all channel in the images
-def show_histogram():
+def show_histogram(): # show all channel in the images
+
     global img
     img_array = np.array(img)
     plt.hist(img_array.ravel(), bins=256, color='gray', alpha=0.7)
@@ -143,31 +146,18 @@ def show_histogram():
     plt.title('Image Histogram')
     plt.show()
     
-#! slove the problem in function
-def adaptive_threshold():
-    
-    
+def adaptive_threshold(): #! slove the problem in function
     global img
     radius = 3  
     threshold_value = 80  
-
-    # Convert the image to grayscale
     img_gray = img.convert("L")
-
-    # Convert to NumPy array for OpenCV processing
     img_cv2 = np.array(img_gray)
-
-    # Apply adaptive thresholding
-    img_cv2 = cv2.adaptiveThreshold(img_cv2, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, radius, threshold_value)
-
+    img_cv2 = cv2.adaptiveThreshold(img_cv2, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, radius, threshold_value)  #? Apply adaptive thresholding
     # Convert back to PIL Image object and then to binary mode
     img = Image.fromarray(img_cv2).convert("1")
-
-    # Display the image
     display_image(img)
-def image_reflection():
-    
 
+def image_reflection(): 
     #* ====== using PIL ======
     # global img
     # img = img.transpose(Image.FLIP_LEFT_RIGHT)
@@ -178,12 +168,11 @@ def image_reflection():
     img = cv2.flip(np.array(img), 1)
     img = Image.fromarray(img)
     display_image(img)
-# ! slove the problem of gamma correction
-def gamma_correction():
+
+def gamma_correction(): # ! slove the problem of gamma correction
     global img
     gamma = 1.5
     img = ImageEnhance.Contrast(img).enhance(gamma)
-
     # Convert img to the mode of the original image
     img = img.convert("RGB")  # Adjust the mode as needed
     display_image(img)
@@ -191,158 +180,106 @@ def gamma_correction():
 def otsu_threshold():
     global img
     img_gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
-    _, img_binary = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    _, img_binary = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU) #? convert the image 
     
     img = Image.fromarray(img_binary) #? create an image from the array numpy
     display_image(img)
 
 def mean_filter():
     global img
-    
     np_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-    
-    # Apply mean filter using cv2.blur
-    blurred = cv2.blur(np_img, (5, 5))  # You can adjust the kernel size (e.g., (5, 5)) as needed
-    
-    # Convert the result image back to PIL format(no effect happend in the image)
+    blurred = cv2.blur(np_img, (5, 5))  #? apply the mean_filter
     img = Image.fromarray(cv2.cvtColor(blurred, cv2.COLOR_BGR2RGB))
-    
     display_image(img)
 
 def gaussian_filter():
     global img
-    
     np_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-    
-    # Apply mean filter using cv2.blur
-    blurred = cv2.GaussianBlur(np_img, (5, 5), 0)  # You can adjust the kernel size (e.g., (5, 5)) as needed
-    
-    # Convert the result image back to PIL format (not effect happend to the image)
+    blurred = cv2.GaussianBlur(np_img, (5, 5), 0)  #? apply the gaussian_filter with kernel size (5,5) and sigma=0
     img = Image.fromarray(cv2.cvtColor(blurred, cv2.COLOR_BGR2RGB))
-    
     display_image(img)
 
 def median_filter():
     global img
-    
     np_img = np.array(img)
-    
-    # Apply mean filter using cv2.blur
-    blurred = cv2.medianBlur(np_img, (5, 5))  # You can adjust the kernel size (e.g., (5, 5)) as needed
-    
-    # Convert the result image back to PIL format
+    blurred = cv2.medianBlur(np_img, (5, 5))  #? apply the median_filter with kernel size (5,5)
     img = Image.fromarray(blurred)
-    
     display_image(img)
 
 def blind_image():
     global img
-    
     img1_path = filedialog.askopenfilename(title="Select Image 1")
     img2_path = filedialog.askopenfilename(title="Select Image 2")
-    
     if img1_path and img2_path:
         img1 = Image.open(img1_path)
         img2 = Image.open(img2_path)
-        
         # Resize the images to the same size
         img1 = img1.resize((img.width, img.height))
         img2 = img2.resize((img.width, img.height))
-        
         # Convert PIL images to NumPy arrays
         np_img1 = np.array(img1)
         np_img2 = np.array(img2)
-        
-        # Perform blending using cv2.addWeighted
-        blended = cv2.addWeighted(np_img1, 0.5, np_img2, 0.5, 0)
-        
+        blended = cv2.addWeighted(np_img1, 0.5, np_img2, 0.5, 0) #? Perform blending using cv2.addWeighted
         # Convert the result image back to PIL format
         img = Image.fromarray(blended)
-        
         display_image(img)
 
 def and_operation():
     global img
-    
     img1_path = filedialog.askopenfilename(title="Select Image 1")
     img2_path = filedialog.askopenfilename(title="Select Image 2")
-    
     if img1_path and img2_path:
         img1 = cv2.imread(img1_path, cv2.COLOR_BGR2RGB)
         img2 = cv2.imread(img2_path, cv2.COLOR_BGR2RGB)
-        
         # Resize the images to the same size
         img1 = cv2.resize(img1, (img.width, img.height))
         img2 = cv2.resize(img2, (img.width, img.height))
-        
-        # Perform AND operation
-        img = cv2.bitwise_and(img1, img2)
-        
+        img = cv2.bitwise_and(img1, img2) #? Perform AND operation
         # ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
-        img = Image.fromarray(img)        
+        img = Image.fromarray(img)
         display_image(img)
 
 def or_operation():
     global img
-    
     img1_path = filedialog.askopenfilename(title="Select Image 1")
     img2_path = filedialog.askopenfilename(title="Select Image 2")
-    
     if img1_path and img2_path:
         img1 = cv2.imread(img1_path, cv2.COLOR_BGR2RGB)
         img2 = cv2.imread(img2_path, cv2.COLOR_BGR2RGB)
-        
         # Resize the images to the same size
         img1 = cv2.resize(img1, (img.width, img.height))
         img2 = cv2.resize(img2, (img.width, img.height))
-        
-        # Perform OR operation
-        img = cv2.bitwise_or(img1, img2)
-        
+        img = cv2.bitwise_or(img1, img2) #? Perform OR operation
         # ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
-        img = Image.fromarray(img)        
+        img = Image.fromarray(img)
         display_image(img)
 
 def divide_operation():
     global img
-    
     img1_path = filedialog.askopenfilename(title="Select Image 1")
     img2_path = filedialog.askopenfilename(title="Select Image 2")
-    
     if img1_path and img2_path:
         img1 = cv2.imread(img1_path, cv2.COLOR_BGR2RGB)
         img2 = cv2.imread(img2_path, cv2.COLOR_BGR2RGB)
-        
         # Resize the images to the same size
         img1 = cv2.resize(img1, (img.width, img.height))
         img2 = cv2.resize(img2, (img.width, img.height))
-        
-        # Perform pixel-wise division
-        img = cv2.divide(img1, img2, scale=255.0)
-        
-        # Convert the result image to 'L' mode
+        img = cv2.divide(img1, img2, scale=255.0) #? Perform pixel-wise division
         img = Image.fromarray(img)        
         display_image(img)    
 
 def multipluy_operation():
     global img
-    
     img1_path = filedialog.askopenfilename(title="Select Image 1")
     img2_path = filedialog.askopenfilename(title="Select Image 2")
-    
     if img1_path and img2_path:
         img1 = cv2.imread(img1_path, cv2.COLOR_BGR2RGB)
         img2 = cv2.imread(img2_path, cv2.COLOR_BGR2RGB)
-        
         # Resize the images to the same size
         img1 = cv2.resize(img1, (img.width, img.height))
         img2 = cv2.resize(img2, (img.width, img.height))
-        
-        # Perform pixel-wise multiplication
-        img = cv2.multiply(img1, img2, scale=1/255.0)
-        
-        # Convert the result image to 'L' mode
-        img = Image.fromarray(img)        
+        img = cv2.multiply(img1, img2, scale=1/255.0) #? Perform pixel-wise  and scale=1/255.0 mean the value of the pixel is between 0 and 1        
+        img = Image.fromarray(img)
         display_image(img)
 
 
