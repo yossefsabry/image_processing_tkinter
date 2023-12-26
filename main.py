@@ -13,7 +13,7 @@ import cv2
 import PIL.ImageFilter as ImageFilter
 import tkinter.ttk as ttk
 
-# Fix: Add the ADAPTIVE_THRESH_MEAN_C attribute to the ImageFilter module
+#  Add the ADAPTIVE_THRESH_MEAN_C attribute to the ImageFilter module
 ImageFilter.ADAPTIVE_THRESH_MEAN_C = 1
 
 # display images
@@ -29,19 +29,19 @@ def brightness_callback(brightness_pos):
     output_image = enhancer.enhance(brightness_pos) # Apply brightness enhancement
     display_image(output_image)
 
-def resolution_callback(resolution_pos):# ! slove the problem of resolution
-    resolution_pos = float(resolution_pos)  # Convert the value to float
+def zoom_callback(zoom_pos):
+    zoom_pos = float(zoom_pos)  # Convert the value to float
     global output_image
     width, height = img.size  # Get the original image size
-    new_width = int(width * resolution_pos)
-    new_height = int(height * resolution_pos)
-    
-    # Resize the image using the new dimensions and applying the ANTIALIAS filter
-    output_image = img.resize((new_width, new_height), Image.ANTIALIAS)
-    
+    new_width = int(width * zoom_pos) #? calculate the new width
+    new_height = int(height * zoom_pos) #? calculate the new height
+    img_array = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR) #? convert the image to array numpy
+    resized_image = cv2.resize(img_array, (new_width, new_height), interpolation=cv2.INTER_AREA) #? resize the image, interpolation is the method of resizing
+    output_image = Image.fromarray(cv2.cvtColor(resized_image, cv2.COLOR_BGR2RGB))
+
     display_image(output_image)
 
-def contrast_callback(contrast_pos):# ! error in install the module torchvision
+def contrast_callback(contrast_pos):#! error in install the module torchvision
 
     contrast_pos = float(contrast_pos)
     global output_image
@@ -132,7 +132,7 @@ def convert_to_binary():
     _, img_binary = cv2.threshold(img_gray, 87, 255, cv2.THRESH_BINARY) #? convert the image to binary
     img = Image.fromarray(img_binary)
     display_image(img)
-    
+
 def close():
     mains.destroy()
 
@@ -145,43 +145,43 @@ def show_histogram(): # show all channel in the images
     plt.ylabel('Frequency')
     plt.title('Image Histogram')
     plt.show()
-    
-def adaptive_threshold(): #! slove the problem in function
-    global img
-    radius = 3  
-    threshold_value = 80  
-    img_gray = img.convert("L")
-    img_cv2 = np.array(img_gray)
-    img_cv2 = cv2.adaptiveThreshold(img_cv2, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, radius, threshold_value)  #? Apply adaptive thresholding
-    # Convert back to PIL Image object and then to binary mode
-    img = Image.fromarray(img_cv2).convert("1")
-    display_image(img)
 
-def image_reflection(): 
+def adaptive_threshold():
+    global img
+    img_gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
+    img_binary = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 199, 5) #? convert the image to binary
+    #* adaptiveThreshold(src, maxValue, adaptiveMethod, thresholdType, blockSize , C )
+    #* blockSize: حجم حيز البكسل المستخدم لحساب الحد التكيفي.
+    #* C: الثابت المُطرح من المتوسط أو المتوسط المرجح.
+    img = Image.fromarray(img_binary) 
+    display_image(img)
+    
+def image_reflection():
     #* ====== using PIL ======
     # global img
     # img = img.transpose(Image.FLIP_LEFT_RIGHT)
     # display_image(img)
-    
-    #* ====== using cv2 ===== 
+
+    #* ====== using cv2 =====
     global img
     img = cv2.flip(np.array(img), 1)
     img = Image.fromarray(img)
     display_image(img)
 
-def gamma_correction(): # ! slove the problem of gamma correction
+def gamma_correction(): 
     global img
-    gamma = 1.5
-    img = ImageEnhance.Contrast(img).enhance(gamma)
-    # Convert img to the mode of the original image
-    img = img.convert("RGB")  # Adjust the mode as needed
+    gamma = 1.5 
+    img_array = np.array(img)
+    img_gamma_corrected = np.power(img_array / 255.0, gamma) * 255.0 #? Apply gamma correction and 255.0 is the max value of the pixel
+    img_gamma_corrected = img_gamma_corrected.astype(np.uint8) #? convert the image to uint8 because the value of the pixel is between 0 and 255
+    img = Image.fromarray(img_gamma_corrected) #? create an image from the array numpy
     display_image(img)
 
 def otsu_threshold():
     global img
     img_gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
     _, img_binary = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU) #? convert the image 
-    
+    # threshold(src, thresh, maxval, type[, dst]) -> retval, dst
     img = Image.fromarray(img_binary) #? create an image from the array numpy
     display_image(img)
 
@@ -220,7 +220,6 @@ def blind_image():
         np_img1 = np.array(img1)
         np_img2 = np.array(img2)
         blended = cv2.addWeighted(np_img1, 0.5, np_img2, 0.5, 0) #? Perform blending using cv2.addWeighted
-        # Convert the result image back to PIL format
         img = Image.fromarray(blended)
         display_image(img)
 
@@ -265,7 +264,7 @@ def divide_operation():
         img1 = cv2.resize(img1, (img.width, img.height))
         img2 = cv2.resize(img2, (img.width, img.height))
         img = cv2.divide(img1, img2, scale=255.0) #? Perform pixel-wise division
-        img = Image.fromarray(img)        
+        img = Image.fromarray(img)
         display_image(img)    
 
 def multipluy_operation():
@@ -281,8 +280,6 @@ def multipluy_operation():
         img = cv2.multiply(img1, img2, scale=1/255.0) #? Perform pixel-wise  and scale=1/255.0 mean the value of the pixel is between 0 and 1        
         img = Image.fromarray(img)
         display_image(img)
-
-
 
 #  =========== GUI ===========
 mains = Tk()
@@ -333,8 +330,8 @@ brightness_slider.set(1)
 brightness_slider.configure(font=('consolas', 10, 'bold'), foreground='black')
 brightness_slider.place(x=1070, y=15)
 
-resolution_slider = Scale(mains, label="resolution", from_=0, to=2, orient=HORIZONTAL, length=200,
-                            resolution=0.1, command=resolution_callback, bg="PINK")
+resolution_slider = Scale(mains, label="zoom", from_=0, to=2, orient=HORIZONTAL, length=200,
+                            resolution=0.1, command=zoom_callback, bg="PINK")
 resolution_slider.set(1)
 resolution_slider.configure(font=('consolas', 10, 'bold'), foreground='black')
 resolution_slider.place(x=1070, y=90)
