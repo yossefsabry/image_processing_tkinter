@@ -201,13 +201,15 @@ def gaussian_filter():
     blurred = cv2.GaussianBlur(np_img, (5, 5), 0)  #? apply the gaussian_filter with kernel size (5,5) and sigma=0
     img = Image.fromarray(cv2.cvtColor(blurred, cv2.COLOR_BGR2RGB))
     display_image(img)
-
-def median_filter():#! error >  (- Argument 'ksize' is required to be an integer)
+    
+def median_filter():
     global img
     np_img = np.array(img)
-    blurred = cv2.medianBlur(np_img, (5, 5))  #? apply the median_filter with kernel size (5,5)
-    img = Image.fromarray(blurred)
-    print('--------- apply')
+    ksize = 5  #? kernel size
+    if ksize % 2 == 0: #? if the kernel size is even, add 1 to the kernel size
+        ksize += 1
+    blurred = cv2.medianBlur(np_img, ksize)
+    img = Image.fromarray(blurred)    
     display_image(img)
 
 def blind_image():
