@@ -287,6 +287,9 @@ def multipluy_operation():
         img = Image.fromarray(img)
         display_image(img)
 
+
+
+
 #  =========== GUI ===========
 mains = Tk()
 space = " " * 215
