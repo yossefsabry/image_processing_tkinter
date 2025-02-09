@@ -1,26 +1,19 @@
-from tkinter import *
-from tkinter import ttk
-from PIL import ImageTk, Image, ImageFilter, ImageChops
-from tkinter import filedialog
+# tkinter gui for image processing 
+
+# main imports
+from tkinter import Label, HORIZONTAL, filedialog, Button, Scale, Tk
 import os
 import cv2
-from PIL import ImageEnhance
+from PIL import ImageTk, Image, ImageFilter ,ImageEnhance
 import numpy as np
 import matplotlib.pyplot as plt
 from ttkbootstrap import Style
-from PIL import ImageChops
 import cv2
-import PIL.ImageFilter as ImageFilter
-import tkinter.ttk as ttk
-from tkinter import Button, Scale, Tk
 
-
-
-#  Add the ADAPTIVE_THRESH_MEAN_C attribute to the ImageFilter module
-ImageFilter.ADAPTIVE_THRESH_MEAN_C = 1
 
 # display images
 def display_image(img):
+    """Updates the Tkinter Label with a new image."""
     disp_image = ImageTk.PhotoImage(img)
     panel.configure(image=disp_image)
     panel.image = disp_image
@@ -317,7 +310,7 @@ def set_style():
 # Apply styles
 set_style()
 
-img = Image.open("img1.png")
+img = Image.open("./images/img1.png")
 img = img.resize((700, 600))
 
 panel = Label(mains)
